@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 app.include_router(router)
-app.title = "API REST para Esteganografia y Cifrado"
+app.title = "API REST Segmentation endoscope application"
 app.version = "1.0.0"
 
 origins = [

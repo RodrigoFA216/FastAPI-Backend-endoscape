@@ -1,0 +1,7 @@
+myvenv 
+virtualvenv
+venv
+.vscode
+__pycache__
+.git
+.gitignore

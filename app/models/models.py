@@ -6,4 +6,4 @@ class Detection(BaseModel):
     title: str
     notations: Optional[str] = None
     completed: bool = False
-    archive: Optional[str] #Se Necesita cambiar por file y remover opcional
+    archive: Optional[str] #Se Necesita cambiar por file y remover opcionalCXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

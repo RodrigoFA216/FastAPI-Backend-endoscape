@@ -1,5 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from models import Detection
+from app.models.models import Detection
 
 client = AsyncIOMotorClient('mongodb://localhost')
 database = client.detectiondatabase

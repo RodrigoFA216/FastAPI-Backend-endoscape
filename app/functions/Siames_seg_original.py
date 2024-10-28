@@ -5,20 +5,20 @@ Created on Tue Sep 10 22:44:45 2024
 @author: rodar
 """
 import os
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
+import cv2 # type: ignore
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
 from glob import glob
-from skimage.transform import resize
-from imageio import imread
+from skimage.transform import resize # type: ignore
+from imageio import imread # type: ignore
 
 # TensorFlow y Keras imports
-import tensorflow as tf
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Add, AveragePooling2D
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras import backend as K
+import tensorflow as tf # type: ignore
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Add, AveragePooling2D # type: ignore
+from tensorflow.keras.models import Model # type: ignore
+from tensorflow.keras.optimizers import Adam # type: ignore
+from tensorflow.keras.callbacks import ModelCheckpoint # type: ignore
+from tensorflow.keras import backend as K # type: ignore
 
 # Definición de la ruta de la carpeta donde están las imágenes
 data_dir = 'Imagenes/Endoscape/'
@@ -72,7 +72,7 @@ def residual_block(x, filters):
 
 def siamese_segmentation_model(img_shape):
     inputs = Input(img_shape)
-
+    
     def shared_block(x):
         # Reducción en el número de capas y eliminación de Inception
         conv1 = residual_block(x, 64)
@@ -114,21 +114,19 @@ def siamese_segmentation_model(img_shape):
         up9 = Conv2D(64, (3, 3), activation='relu', padding='same')(up9)
         merge9 = concatenate([conv1, up9], axis=3)
         return Conv2D(output_filters, (1, 1), activation='sigmoid')(merge9)
-
     conv1, conv2, conv3, conv4, shared_output = shared_block(inputs)
     output_instrument = branch(conv1, conv2, conv3, conv4, shared_output)
     output_background = branch2(conv1, conv2, conv3, conv4, shared_output)
-
     return Model(inputs=inputs, outputs=[output_instrument, output_background])
 
 
 if __name__ == "__main__":
-    from tensorflow.keras.models import load_model
-    from tensorflow.keras.optimizers import Adam, RMSprop
-    from tensorflow.keras.callbacks import ModelCheckpoint
+    from tensorflow.keras.models import load_model # type: ignore
+    from tensorflow.keras.optimizers import Adam, RMSprop # type: ignore
+    from tensorflow.keras.callbacks import ModelCheckpoint # type: ignore
     
     # Cargar el modelo previamente guardado
-    model_path = 'Mod/model_siamese_segmentation_epoch_20.h5'
+    model_path = '2siames_org_inst.h5'
     
     try:
         model = load_model(model_path, custom_objects={'IOU_calc': IOU_calc})  # Asegúrate de incluir cualquier métrica o función personalizada
@@ -138,13 +136,9 @@ if __name__ == "__main__":
         model = siamese_segmentation_model((128, 128, 3))
         model.compile(optimizer=RMSprop(lr=1e-4), loss='binary_crossentropy', metrics=[IOU_calc])
     
-    
-    
     # Generador de datos
     train_generator = generator(data_dir, image_shape, batch_size)
     
-
-
     # Callback para guardar el mejor modelo basado en la métrica que elijas (por ejemplo, val_loss)
     checkpoint_best = ModelCheckpoint(
         'Mod/best_model_siamese_segmentation.h5',
@@ -170,9 +164,6 @@ if __name__ == "__main__":
     
     # Guardar el modelo al final del entrenamiento
     model.save('Mod/siames_org_inst.h5')
-
-    
-    
     
     def ver_segmentacion(modelo, generador_prueba, batch_size=5):
         # Obtener un lote de datos de prueba
@@ -203,13 +194,8 @@ if __name__ == "__main__":
             plt.title("Máscara Predicha Instrumento")
             plt.axis('off')
             
-            
-        
         plt.tight_layout()
         plt.show()
     
     # Llamar a la función para ver las segmentaciones en un lote de prueba
     ver_segmentacion(model, train_generator)
-    
-    
-    

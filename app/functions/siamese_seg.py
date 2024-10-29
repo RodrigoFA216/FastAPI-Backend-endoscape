@@ -1,19 +1,26 @@
-import cv2 # type: ignore
-import numpy as np # type: ignore
-from tensorflow.keras.models import load_model # type: ignore
-from IOU_calc import IOU_calc
+import cv2 #type: ignore
+import numpy as np #type: ignore
+from tensorflow.keras.models import load_model #type: ignore
+from app.functions.metrics import IOU_calc
 
-def segment_video(video_path, model_path='../models/2siames_org_inst.h5'):
+def segment_video_to_output(video_path, model_path='2siames_org_inst.h5', output_path='../temp/videos/segmented_output.mp4'):
     # Cargar el modelo entrenado
     model = load_model(model_path, custom_objects={'IOU_calc': IOU_calc})
 
-    # Abrir el video
+    # Abrir el video de entrada
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         print("Error: No se pudo abrir el video.")
         return None
     
-    segmented_frames = []
+    # Obtener las dimensiones del video original
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    
+    # Configurar el video de salida
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codificación para el formato .mp4
+    out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -27,17 +34,18 @@ def segment_video(video_path, model_path='../models/2siames_org_inst.h5'):
         # Realizar predicción de segmentación
         instrument_mask, background_mask = model.predict(input_frame)
 
-        # Procesar y guardar la máscara de segmentación
+        # Procesar y redimensionar la máscara de segmentación al tamaño original del cuadro
         instrument_mask = (instrument_mask[0, :, :, 0] > 0.5).astype(np.uint8) * 255
-        background_mask = (background_mask[0, :, :, 0] > 0.5).astype(np.uint8) * 255
-        
-        # Redimensionar máscaras al tamaño original del cuadro
-        instrument_mask = cv2.resize(instrument_mask, (frame.shape[1], frame.shape[0]))
-        background_mask = cv2.resize(background_mask, (frame.shape[1], frame.shape[0]))
+        instrument_mask = cv2.resize(instrument_mask, (frame_width, frame_height))
 
-        # Agregar las máscaras de segmentación al resultado
-        segmented_frames.append((frame, instrument_mask, background_mask))
+        # Superponer la máscara al cuadro original
+        mask_colored = cv2.applyColorMap(instrument_mask, cv2.COLORMAP_JET)
+        overlay_frame = cv2.addWeighted(frame, 0.7, mask_colored, 0.3, 0)
 
-    # Liberar el video y retornar los cuadros segmentados
+        # Escribir el cuadro con la segmentación en el video de salida
+        out.write(overlay_frame)
+
+    # Liberar recursos
     cap.release()
-    return segmented_frames
+    out.release()
+    print(f"Video segmentado guardado en: {output_path}")

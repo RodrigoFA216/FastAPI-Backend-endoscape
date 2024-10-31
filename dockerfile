@@ -9,8 +9,8 @@ RUN apt-get update && \
     libgl1-mesa-glx && \
     rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements_deploy.txt .
+RUN pip install --no-cache-dir -r requirements_deploy.txt
 
 COPY . .
 
